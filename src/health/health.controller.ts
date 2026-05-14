@@ -5,7 +5,9 @@ import {
   HealthCheckService,
   HttpHealthIndicator,
 } from '@nestjs/terminus';
+import { NoAuthentication } from '../auth/decorators/no-authentication.decorator';
 
+@NoAuthentication()
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

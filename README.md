@@ -5,14 +5,21 @@ A NestJS REST API that enables AI-assisted search over SharePoint Online content
 ## Prerequisites
 
 - Node.js LTS
-- An Azure EntraID app registration (see [Authentication](#authentication))
-- A `.env` file (copy from `.env.example`)
+- An Azure EntraID app registration (see [Environment Variables](#environment-variables))
+- A `.env` file (see [Environment Variables](#environment-variables))
+
+## Environment Variables
+
+| Variable | Description |
+| --- | --- |
+| `AZURE_TENANT_ID` | EntraID tenant ID |
+| `AZURE_CLIENT_ID` | App registration client ID |
+| `AZURE_CLIENT_SECRET` | App registration client secret |
 
 ## Getting Started
 
 ```bash
 npm install
-cp .env.example .env   # fill in Azure credentials
 npm run start:dev
 ```
 
@@ -23,13 +30,36 @@ Swagger UI is available at `http://localhost:3000/api`
 
 This API uses the [On-Behalf-Of flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow). The client (SPFx) acquires a bearer token for this API's app registration via EntraID, and the API exchanges it for a Microsoft Graph token scoped to the user.
 
-Required environment variables:
+## SPFx Setup
 
-| Variable | Description |
-|---|---|
-| `AZURE_TENANT_ID` | EntraID tenant ID |
-| `AZURE_CLIENT_ID` | App registration client ID |
-| `AZURE_CLIENT_SECRET` | App registration client secret |
+To allow an SPFx solution to acquire tokens for this API, complete the following steps in the [Entra admin center](https://entra.microsoft.com):
+
+### 1. Expose an API
+
+In your app registration → **Expose an API**:
+
+- Set the Application ID URI (e.g. `api://<AZURE_CLIENT_ID>`)
+- Add a scope named `user_impersonation`
+
+### 2. Grant the OAuth2 permission via PowerShell
+
+Run the provided script to create the OAuth2 permission grant so SPFx can acquire tokens tenant-wide without per-user consent prompts. Requires one of the following Entra ID roles ([source](https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-post?view=graph-rest-1.0#permissions)): Application Administrator, Cloud Application Administrator, or Privileged Role Administrator.
+
+```powershell
+.\scripts\Grant-SpfxApiPermissions.ps1 -ResourceAppId "<AZURE_CLIENT_ID>"
+```
+
+The script will prompt to install the `Microsoft.Graph` modules if not already present, then authenticate interactively.
+
+### 3. Acquire the token in SPFx
+
+```typescript
+const token = await this.context.aadTokenProviderFactory
+  .getTokenProvider()
+  .then(provider => provider.getToken('api://<AZURE_CLIENT_ID>'));
+```
+
+Pass this as `Authorization: Bearer <token>` when calling this API.
 
 ## Commands
 
@@ -58,7 +88,7 @@ docker compose up
 
 ## Project Structure
 
-```
+```text
 src/
   main.ts              # Bootstrap, Swagger, ValidationPipe
   app.module.ts        # Root module

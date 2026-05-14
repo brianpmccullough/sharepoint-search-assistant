@@ -111,16 +111,29 @@ src/
 ---
 
 ### Phase 2 — Authentication
-- Design Azure AD app registrations (API app + SPFx client app)
-- JWT Bearer Guard: validate incoming token against Azure AD JWKS
+
+- App registration: create Entra ID app registration; expose `user_impersonation` scope; set Application ID URI (`api://<client-id>`)
+- SPFx trust: grant OAuth2 permission to the SharePoint Online Web Client Extensibility principal (`08e18876-6177-487e-b8b5-cf950c1e598c`) via `scripts/Grant-SpfxApiPermissions.ps1` so `aadTokenProviderFactory.getTokenProvider().getToken(...)` works from SPFx without per-user consent
+- JWT Bearer Guard: validate incoming token against Azure AD JWKS; registered globally via `APP_GUARD` so all routes require auth by default
+- `@NoAuthentication()` decorator: opts a route out of the global guard; applied only to `GET /health`
 - OBO Service: exchange token for Graph API token via MSAL
 - Unit tests for guard and OBO service (mocked MSAL)
 
 **Deliverable:** authenticated requests pass through; unauthenticated requests return 401
 
+#### Verification (completed 2026-05-14)
+
+| # | Check | How | Result |
+| --- | --- | --- | --- |
+| 1 | Build compiles | `npm run build` | ✅ No errors |
+| 2 | Unit tests — guard + OBO service | `npm test` | ✅ 6 tests pass |
+| 3 | E2E — `GET /health` returns 200 without auth | `npm run test:e2e` | ✅ |
+| 4 | E2E — `POST /search` returns 401 without bearer token | `npm run test:e2e` | ✅ |
+
 ---
 
 ### Phase 3 — Graph Search Integration
+
 - Search Service: `POST https://graph.microsoft.com/v1.0/search/query`
 - Content scopes: `driveItem` (files/documents/PDFs) + `sitePage` (pages/news)
 - Request model: `query` (required), `from`, `size`, optional `contentSources`
@@ -133,6 +146,7 @@ src/
 ---
 
 ### Phase 4 — Result Enrichment
+
 - Extract and expose hit highlights from Graph Search response
 - Normalize `driveItem` and `sitePage` shapes into a unified `SearchResult` type
 - Pagination support (`from` / `size` passthrough to Graph)
@@ -142,6 +156,7 @@ src/
 ---
 
 ### Phase 5 — AI Answer Layer *(TBD)*
+
 - Deferred until the search baseline is validated in production
 - Likely approach: RAG — retrieve top-N result chunks, pass to an LLM, return a synthesized natural-language answer alongside source links
 - LLM provider, chunking strategy, and caching TBD
@@ -149,6 +164,7 @@ src/
 ---
 
 ### Phase 6 — Hardening & Deployment
+
 - Rate limiting (`@nestjs/throttler`)
 - Structured logging (`nestjs-pino` or `winston`) with correlation IDs
 - Multi-stage Dockerfile (build → production image)

@@ -19,8 +19,14 @@ src/
   config/
     config.module.ts   # Wraps @nestjs/config; globally available, no need to import elsewhere
     app.config.ts      # Typed env schema (class-validator) + config factory
-  auth/                # Phase 2 — JWT guard + OBO token exchange (not yet implemented)
-  search/              # Phase 3 — Graph Search API integration (not yet implemented)
+  auth/
+    auth.module.ts
+    decorators/   # @NoAuthentication() opt-out decorator
+    guards/       # JwtBearerGuard — global, validates Azure AD bearer tokens
+    model/        # AuthenticatedUser — shape of req.user
+    strategies/   # AzureAdJwtStrategy — JWKS validation via Passport
+    microsoft-authentication.service.ts  # OBO token exchange (user → Graph-scoped token)
+  search/              # Phase 3 — Graph Search API integration (stub only; POST /search returns 501)
   health/
     health.module.ts
     health.controller.ts  # GET /health via @nestjs/terminus
@@ -28,7 +34,7 @@ src/
 
 Each feature lives in its own module folder: `module.ts`, `controller.ts`, `service.ts`, `model/`. New features follow this pattern — do not put logic in `app.module.ts`.
 
-`ConfigModule` is global (`isGlobal: true`). Inject `ConfigService` directly in any provider without re-importing `ConfigModule`.
+`ConfigModule` is global (`isGlobal: true`, `@Global()`). Inject `ConfigurationService` directly in any provider without re-importing `ConfigModule`. Do not inject NestJS's raw `ConfigService` — use `ConfigurationService` for all typed config access.
 
 ---
 
@@ -81,6 +87,8 @@ npm run test:e2e
 
 Local dev requires a `.env` file. Copy `.env.example` and fill in Azure credentials.
 
+**Environment variables:** whenever a new env var is added or removed, update both `.env.example` and the `README.md` Authentication table to match. These three must always be in sync: `src/config/app.config.ts` (schema), `.env.example` (template), `README.md` (documentation).
+
 ---
 
 ## Open Issues
@@ -91,7 +99,7 @@ When a decision is skipped, deferred, or needs follow-up, add a row to `docs/bui
 
 ## Do Not
 
-- **Do not bypass the JWT guard** on any endpoint except `/health`. Every route that touches Graph API or returns user data must be protected.
+- **Do not bypass the JWT guard** on any endpoint except `/health`. Use `@NoAuthentication()` on the health controller to opt out of the global guard. Every route that touches Graph API or returns user data must be protected.
 - **Do not store or log tokens.** Bearer tokens and OBO tokens must never appear in logs, error messages, or responses.
 - **Keep controllers lightweight** API calls, such as Graph calls, belong in a service (`search.service.ts`). Controllers only handle HTTP in/out.
 - **Do not use `any` in TypeScript.** Strict mode is intentional; use proper types or generics.
