@@ -14,6 +14,7 @@ Report any violations clearly. If violations are found, alert the user and advis
 ## Step 2 — Automated Check Suite
 
 Run each step in order. If any step produces errors or warnings, stop immediately and report:
+
 - Which step failed
 - The exact error/warning output
 - A clear message that the PR is NOT ready to proceed
@@ -25,6 +26,16 @@ Run each step in order. If any step produces errors or warnings, stop immediatel
 5. `npm run test:e2e` — End-to-end tests
 6. `npm run build` — Production build
 
-## Step 3 — Summary
+## Step 3 - Git Preparation
+
+- Ensure a branch is created in the format: [fix|feature]/[userinitials]/[short-summary-of-changes], e.g. feat/bpm/add-authentication
+- Commit / Stash changes locally to the branch with a short (less than 50 characters) summary in the commit message.  Prefix the commit message with [fix|feat]: as appropriate.
+- Push the changes to remote branch (create if doesn't exist).
+
+## Step 4 — Summary
 
 If everything passes, confirm the branch is ready to submit for review. If anything failed in either step, summarise all issues and clearly state the PR is NOT ready.
+
+## Step 5 - Create PR
+
+Ask the user if they want to create the PR.  If so, create the PR.  Use an brief summary for PR title (less than 50 characters).  Create bulleted list of changes and reference any work items if known (if not known, it's ok)
