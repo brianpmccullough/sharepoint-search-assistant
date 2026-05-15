@@ -13,6 +13,7 @@ import { SearchRequestModel } from './model/search-request.model';
 export class SearchController {
   @Post()
   @ApiOperation({ summary: 'Search SharePoint content' })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub; body used for validation only until SearchService is implemented in Phase 4
   search(@Body() _body: SearchRequestModel) {
     throw new NotImplementedException();
   }
