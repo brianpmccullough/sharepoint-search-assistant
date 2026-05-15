@@ -15,6 +15,7 @@ A NestJS REST API that enables AI-assisted search over SharePoint Online content
 | `AZURE_TENANT_ID` | EntraID tenant ID |
 | `AZURE_CLIENT_ID` | App registration client ID |
 | `AZURE_CLIENT_SECRET` | App registration client secret |
+| `TENANT_NAME` | SharePoint tenant name (e.g. `mmcbpm` for `mmcbpm.sharepoint.com`) — used to scope CORS |
 
 ## Getting Started
 
@@ -60,6 +61,15 @@ const token = await this.context.aadTokenProviderFactory
 ```
 
 Pass this as `Authorization: Bearer <token>` when calling this API.
+
+## Local Development Token
+
+`scripts/get-dev-token.sh` fetches a delegated bearer token via the Azure CLI for testing the API locally. Requires `az login --tenant <AZURE_TENANT_ID>`. The Azure CLI app (`04b07795-8ddb-461a-bbee-02f9e1bf7b46`) must be added as an authorized client application under **Expose an API** in the app registration.
+
+```bash
+./scripts/get-dev-token.sh | pbcopy   # copy token to clipboard
+npm run test:e2e:live                  # run e2e tests with a live token
+```
 
 ## Commands
 

@@ -1,5 +1,11 @@
-import { Controller, NotImplementedException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  NotImplementedException,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { SearchRequestModel } from './model/search-request.model';
 
 @ApiBearerAuth()
 @ApiTags('search')
@@ -7,7 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 export class SearchController {
   @Post()
   @ApiOperation({ summary: 'Search SharePoint content' })
-  search() {
+  search(@Body() _body: SearchRequestModel) {
     throw new NotImplementedException();
   }
 }
