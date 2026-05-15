@@ -14,6 +14,9 @@ class EnvironmentVariables {
 
   @IsString()
   AZURE_CLIENT_SECRET: string = '';
+
+  @IsString()
+  TENANT_NAME: string = '';
 }
 
 export function validateConfig(
@@ -36,4 +39,5 @@ export const appConfig = () => ({
     clientId: process.env.AZURE_CLIENT_ID ?? '',
     clientSecret: process.env.AZURE_CLIENT_SECRET ?? '',
   },
+  tenantName: process.env.TENANT_NAME ?? '',
 });

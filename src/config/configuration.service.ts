@@ -9,6 +9,7 @@ export class ConfigurationService {
     readonly clientId: string;
     readonly clientSecret: string;
   };
+  readonly tenantName: string;
 
   constructor(configService: ConfigService) {
     this.port = configService.get<number>('port') ?? 3000;
@@ -17,5 +18,6 @@ export class ConfigurationService {
       clientId: configService.get<string>('azure.clientId') ?? '',
       clientSecret: configService.get<string>('azure.clientSecret') ?? '',
     };
+    this.tenantName = configService.get<string>('tenantName') ?? '';
   }
 }

@@ -3,9 +3,15 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ConfigurationService } from './config/configuration.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const { tenantName } = app.get(ConfigurationService);
+  app.enableCors({
+    origin: new RegExp(`^https://${tenantName}(-[^.]+)?\\.sharepoint\\.com$`),
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),

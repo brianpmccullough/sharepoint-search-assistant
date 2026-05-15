@@ -132,26 +132,57 @@ src/
 
 ---
 
-### Phase 3 — Graph Search Integration
+### Phase 3 — CORS, Auth Hardening & SPFx Standup ✅
+
+#### API
+
+- CORS: `enableCors` scoped to `*-TENANT_NAME.sharepoint.com` via `TENANT_NAME` env var
+- JWT strategy fix: corrected audience (`api://${clientId}`) and issuer (`https://sts.windows.net/${tenantId}/`) to accept v1.0 tokens — confirmed via live SPFx token; changing `accessTokenAcceptedVersion` in the manifest was ruled out to avoid unknown impact on SPFx token acquisition
+- Dev tooling: `scripts/get-dev-token.sh` — retrieves delegated bearer token via `az cli` for local testing; `npm run test:e2e:live` wires token into e2e run automatically
+
+#### SPFx ([repo](https://github.com/brianpmccullough/sharepoint-search-assistant-spfx))
+
+- SPFx 1.22.2 Application Customizer scaffold with Heft build tooling
+- Prettier + eslint-config-prettier for consistent formatting
+- AGENTS.md documenting architecture, conventions, and hard constraints
+- Basic call from SPFx to API confirmed (501 response with valid bearer token accepted by JWT guard)
+
+**Deliverable:** authenticated requests from SPFx reach the API; CORS and JWT guard validated end-to-end
+
+#### Verification
+
+##### Automated — new e2e tests (`search.e2e-spec.ts`)
+
+| # | Check | Result |
+| --- | --- | --- |
+| 1 | Preflight `OPTIONS /search` with `Origin: https://mmcbpm.sharepoint.com` returns CORS headers | ✅ |
+| 2 | Preflight `OPTIONS /search` with a disallowed origin returns no CORS headers | ✅ |
+| 3 | `POST /search` missing `query` field returns 400 | ✅ |
+| 4 | `POST /search` with unknown field returns 400 | ✅ |
+| 5 | `POST /search` with invalid bearer token returns 401 | ✅ |
+| 6 | `POST /search` with real bearer token returns 501 (`npm run test:e2e:live`) | ✅ |
+
+##### Manual *(requires `.env` with Azure credentials)*
+
+| # | Check | How | Result |
+| --- | --- | --- | --- |
+| 7 | `./scripts/get-dev-token.sh` returns a valid JWT | Run script; decode at jwt.ms | ✅ |
+| 8 | Real bearer token from `az cli` accepted by JWT guard (returns 501, not 401) | `npm run test:e2e:live` | ✅ |
+| 9 | SPFx token accepted by JWT guard (returns 501, not 401) | Trigger call from SPFx customizer | ✅ |
+
+---
+
+### Phase 4 — Graph Search Integration
 
 - Search Service: `POST https://graph.microsoft.com/v1.0/search/query`
 - Content scopes: `driveItem` (files/documents/PDFs) + `sitePage` (pages/news)
 - Request model: `query` (required), `from`, `size`, optional `contentSources`
 - Response model: normalized `SearchResult[]` — title, url, summary, lastModified, contentType
+- Hit highlights from Graph Search response
 - Graph error mapping → NestJS HTTP exceptions
-- Integration tests with mocked Graph responses
-
-**Deliverable:** `POST /search` returns ranked SharePoint results for an authenticated user
-
----
-
-### Phase 4 — Result Enrichment
-
-- Extract and expose hit highlights from Graph Search response
-- Normalize `driveItem` and `sitePage` shapes into a unified `SearchResult` type
 - Pagination support (`from` / `size` passthrough to Graph)
 
-**Deliverable:** clean, paginated result contract ready for client consumption
+**Deliverable:** `POST /search` returns ranked, normalized SharePoint results for an authenticated user
 
 ---
 

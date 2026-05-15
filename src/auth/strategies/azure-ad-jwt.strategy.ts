@@ -29,8 +29,8 @@ export class AzureAdJwtStrategy extends PassportStrategy(
         jwksUri: `https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`,
       }),
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      audience: clientId,
-      issuer: `https://login.microsoftonline.com/${tenantId}/v2.0`,
+      audience: `api://${clientId}`,
+      issuer: `https://sts.windows.net/${tenantId}/`,
       algorithms: ['RS256'],
       passReqToCallback: true,
     });
