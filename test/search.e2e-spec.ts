@@ -4,6 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { ConfigurationService } from './../src/config/configuration.service';
+import { SearchResponseModel } from './../src/search/model/search-response.model';
 
 describe('Search (e2e)', () => {
   let app: INestApplication<App>;
@@ -87,14 +88,56 @@ describe('Search (e2e)', () => {
     },
   );
 
+  (token ? it : it.skip)('POST /search with from: -1 returns 400', () => {
+    return request(app.getHttpServer())
+      .post('/search')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ query: 'test', from: -1 })
+      .expect(400);
+  });
+
+  (token ? it : it.skip)('POST /search with size: 0 returns 400', () => {
+    return request(app.getHttpServer())
+      .post('/search')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ query: 'test', size: 0 })
+      .expect(400);
+  });
+
   (token ? it : it.skip)(
-    'POST /search returns 501 for an authenticated request (stub not yet implemented)',
+    'POST /search with a valid query returns 200 with at least one result with the expected shape',
     () => {
       return request(app.getHttpServer())
         .post('/search')
         .set('Authorization', `Bearer ${token}`)
         .send({ query: 'test' })
-        .expect(501);
+        .expect(200)
+        .expect((res) => {
+          const body = res.body as SearchResponseModel;
+          expect(body.results.length).toBeGreaterThan(0);
+          const first = body.results[0];
+          expect(typeof first.title).toBe('string');
+          expect(typeof first.url).toBe('string');
+          expect(typeof first.summary).toBe('string');
+          expect(typeof first.lastModified).toBe('string');
+          expect(['file', 'page']).toContain(first.contentType);
+        });
+    },
+  );
+
+  (token ? it : it.skip)(
+    'POST /search with size: 3 returns at most 3 results',
+    () => {
+      return request(app.getHttpServer())
+        .post('/search')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ query: 'test', from: 0, size: 3 })
+        .expect(200)
+        .expect((res) => {
+          const body = res.body as SearchResponseModel;
+          expect(body.results.length).toBeGreaterThan(0);
+          expect(body.results.length).toBeLessThanOrEqual(3);
+        });
     },
   );
 });
