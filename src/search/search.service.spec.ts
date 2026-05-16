@@ -41,15 +41,15 @@ const makeGraphResponse = (hits: unknown[]) => ({
 });
 
 const makeAxiosError = (status: number): AxiosError => {
-  const err = new AxiosError('Request failed');
-  err.response = {
+  const error = new AxiosError('Request failed');
+  error.response = {
     status,
     data: {},
     headers: {},
-    config: err.config ?? ({} as never),
+    config: error.config ?? ({} as never),
     statusText: '',
   };
-  return err;
+  return error;
 };
 
 describe('SearchService', () => {

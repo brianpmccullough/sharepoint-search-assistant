@@ -33,7 +33,9 @@ describe('SearchController', () => {
     controller = module.get(SearchController);
   });
 
-  const makeReq = (token = 'user-token'): { user: AuthenticatedUser } => ({
+  const makeAuthenticatedRequest = (
+    token = 'user-token',
+  ): { user: AuthenticatedUser } => ({
     user: {
       objectId: 'oid-1',
       email: 'user@tenant.com',
@@ -44,13 +46,13 @@ describe('SearchController', () => {
 
   it('delegates to SearchService.search() with the bearer token and request body', async () => {
     const body: SearchRequestModel = { query: 'test' };
-    await controller.search(makeReq(), body);
+    await controller.search(makeAuthenticatedRequest(), body);
     expect(mockSearch).toHaveBeenCalledWith('user-token', body);
   });
 
   it('returns a SearchResponseModel wrapping the results from SearchService', async () => {
     const body: SearchRequestModel = { query: 'test' };
-    const response = await controller.search(makeReq(), body);
+    const response = await controller.search(makeAuthenticatedRequest(), body);
     expect(response).toEqual({ results: [mockResult] });
   });
 });
