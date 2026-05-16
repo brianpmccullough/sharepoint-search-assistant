@@ -26,7 +26,7 @@ src/
     model/        # AuthenticatedUser — shape of req.user
     strategies/   # AzureAdJwtStrategy — JWKS validation via Passport
     microsoft-authentication.service.ts  # OBO token exchange (user → Graph-scoped token)
-  search/              # Phase 3 — Graph Search API integration (stub only; POST /search returns 501)
+  search/              # Phase 4 — Graph Search API integration; POST /search returns ranked SharePoint results
   health/
     health.module.ts
     health.controller.ts  # GET /health via @nestjs/terminus
